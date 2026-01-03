@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modulo Krinkle Tiling Editor</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="app">
+        <canvas id="tiling-canvas"></canvas>
+
+        <aside class="control-panel">
+            <header>
+                <h1>Modulo Krinkle</h1>
+                <p>Tiling Editor</p>
+            </header>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label for="display-mode">Mode</label>
+                    <select id="display-mode">
+                        <option value="prototile">Prototile (Single)</option>
+                        <option value="wedge">Wedge (Layout)</option>
+                        <option value="tiling">Tiling (Full)</option>
+                    </select>
+                </div>
+
+                <!-- Visibility Toggles -->
+                <div class="control-group" id="group-toggles"
+                    style="margin-top: 10px; border-top: 1px solid #30363d; padding-top: 10px;">
+                    <div id="toggle-edges-container">
+                        <label>
+                            <input type="checkbox" id="show-edges" checked> Show Edge #
+                        </label>
+                    </div>
+                    <div id="toggle-wedges-container" style="display:none;">
+                        <label>
+                            <input type="checkbox" id="show-wedges" checked> Show Wedge #
+                        </label>
+                    </div>
+                    <div id="toggle-tiles-container" style="display:none;">
+                        <label>
+                            <input type="checkbox" id="show-tiles" checked> Show Tile #
+                        </label>
+                    </div>
+                </div>
+
+                <div class="control-group" id="group-rows" style="display: none;">
+                    <label for="param-rows">Rows (Depth)</label>
+                    <input type="number" id="param-rows" value="5" min="1" step="1">
+                </div>
+
+                <div class="control-group">
+                    <label for="param-a">m (Step)</label>
+                    <input type="number" id="param-a" value="2" step="1">
+                </div>
+
+                <div class="control-group">
+                    <label for="param-mod">k (Modulus)</label>
+                    <input type="number" id="param-mod" value="7" min="3" step="1">
+                </div>
+
+                <div class="control-group">
+                    <label for="param-t">t (Period Coeff)</label>
+                    <input type="number" id="param-t" value="2" step="1" min="1">
+                </div>
+
+                <div class="control-group checkbox-group">
+                    <label for="param-offset">
+                        <input type="checkbox" id="param-offset">
+                        Offset Mode (n = 2(tk-m))
+                    </label>
+                </div>
+
+            </div>
+
+            <div class="status-bar">
+                <span id="status-text">Ready</span>
+            </div>
+        </aside>
+    </div>
+    <script src="app.js"></script>
+</body>
+
+</html>
