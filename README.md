@@ -2,7 +2,9 @@
 
 An interactive tool for generating and visualizing "Modulo Krinkle Tilings" (as proposed in [arXiv:2506.07638](https://arxiv.org/abs/2506.07638)) directly in the browser, featuring real-time rendering and parameter manipulation.
 
-This tool was inspired by [mk.tiling.jp/playground](https://mk.tiling.jp/playground/). While it might not look as polished as the original, I added features to show how it works under the hood.
+This project was inspired by [mk.tiling.jp/playground](https://mk.tiling.jp/playground/). While it might not look as polished as the original, I added features to show how it works under the hood.
+
+**[🚀 Live Demo](https://buchio.github.io/modulo_krinkle_tiling_editor/)**
 
 I built this tool using [Antigravity](https://antigravity.google/) and [NotebookLM](https://notebooklm.google.com/). These tools helped me create it in a single day, something I couldn't have done alone. Thank you, Google!
 
@@ -55,3 +57,15 @@ This application is designed to run in a local environment (no build required).
 ## TODO
 
 - [ ] Improve coloring logic
+
+## Deployment (GitHub Pages)
+
+This project is ready for **GitHub Pages**.
+
+1. Go to the project's **Settings** tab on GitHub.
+2. Click **Pages** in the left sidebar.
+3. Under **Build and deployment** > **Source**, select **Deploy from a branch**.
+4. Under **Branch**, select `main` and `/ (root)`.
+5. Click **Save**.
+
+Your site will be live at `https://buchio.github.io/modulo_krinkle_tiling_editor/` shortly.

@@ -19,7 +19,8 @@ body {
     font-family: 'Inter', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
-    overflow: hidden; /* Canvas handles scrolling */
+    overflow: hidden;
+    /* Canvas handles scrolling */
     width: 100vw;
     height: 100vh;
 }
@@ -133,4 +134,59 @@ button:active {
     font-size: 0.8rem;
     color: #8b949e;
     text-align: right;
+}
+
+/* GitHub Ribbon */
+.github-ribbon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.github-ribbon a {
+    display: block;
+    width: 150px;
+    padding: 6px 0;
+    background-color: #aa0000;
+    color: #fff;
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.8rem;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+
+    position: absolute;
+    top: 25px;
+    right: -35px;
+    transform: rotate(45deg);
+
+    pointer-events: auto;
+    transition: background-color 0.2s;
+}
+
+.github-ribbon a::before,
+.github-ribbon a::after {
+    content: "";
+    width: 100%;
+    display: block;
+    position: absolute;
+    top: 2px;
+    left: 0;
+    height: 1px;
+    background: #fff;
+    opacity: 0.3;
+}
+
+.github-ribbon a::after {
+    bottom: 2px;
+    top: auto;
+}
+
+.github-ribbon a:hover {
+    background-color: #cc0000;
 }
