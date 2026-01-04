@@ -87,6 +87,24 @@ header p {
     gap: 8px;
 }
 
+/* Horizontal layout for sliders */
+.control-group:has(input[type="range"]) {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+}
+
+.control-group:has(input[type="range"]) label {
+    min-width: 100px;
+    /* Ensure labels align nicely */
+    flex-shrink: 0;
+}
+
+.control-group:has(input[type="range"]) input {
+    flex-grow: 1;
+    cursor: pointer;
+}
+
 label {
     font-size: 0.85rem;
     font-weight: 500;
@@ -189,4 +207,116 @@ button:active {
 
 .github-ribbon a:hover {
     background-color: #cc0000;
+}
+
+/* Toggle Buttons */
+#btn-open-panel {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 900;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--panel-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--panel-border);
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, background-color 0.2s;
+}
+
+#btn-open-panel.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#btn-open-panel:hover {
+    background-color: rgba(48, 54, 61, 0.8);
+    color: var(--accent-color);
+}
+
+#btn-close-panel {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    padding: 4px;
+    margin: -4px -4px 0 0;
+    /* Align with header */
+    border-radius: 4px;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+#btn-close-panel:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Panel Transition & Hidden State */
+.control-panel.hidden {
+    transform: translateX(-120%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Responsive Design for Mobile */
+@media (max-width: 768px) {
+    .control-panel {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        max-height: 50vh;
+        overflow-y: auto;
+        border-radius: 12px 12px 0 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        transform: translateY(0);
+        padding: 16px;
+    }
+
+    .control-panel.hidden {
+        transform: translateY(120%);
+    }
+
+    #btn-open-panel {
+        top: auto;
+        bottom: 20px;
+        left: 20px;
+        /* Increase z-index to be sure */
+        z-index: 1100;
+    }
+
+    .github-ribbon {
+        width: 70px;
+        height: 70px;
+    }
+
+    .github-ribbon a {
+        font-size: 0.6rem;
+        width: 100px;
+        top: 15px;
+        right: -25px;
+    }
+
+    /* Adjust controls for touch */
+    button,
+    input[type="number"],
+    select {
+        min-height: 44px;
+        /* Touch target size */
+    }
+
+    .control-group label {
+        font-size: 0.9rem;
+    }
 }

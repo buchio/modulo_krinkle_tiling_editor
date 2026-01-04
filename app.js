@@ -24,6 +24,7 @@ class Renderer {
 
         this.initEvents();
         this.resize();
+        this.centerView();
 
         // Hover state
         this.hoveredWedgeIndex = null; // Index of currently hovered Wedge
@@ -40,6 +41,24 @@ class Renderer {
     initEvents() {
         // Resize listener
         window.addEventListener('resize', () => this.resize());
+
+        // Toggle Panel
+        const panel = document.querySelector('.control-panel');
+        const btnOpen = document.getElementById('btn-open-panel');
+        const btnClose = document.getElementById('btn-close-panel');
+
+        const togglePanel = (show) => {
+            if (show) {
+                panel.classList.remove('hidden');
+                btnOpen.classList.remove('visible');
+            } else {
+                panel.classList.add('hidden');
+                btnOpen.classList.add('visible');
+            }
+        };
+
+        if (btnOpen) btnOpen.addEventListener('click', () => togglePanel(true));
+        if (btnClose) btnClose.addEventListener('click', () => togglePanel(false));
 
         // Mouse events for pan operation
         this.canvas.addEventListener('mousedown', (e) => {
@@ -87,7 +106,12 @@ class Renderer {
     resize() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
-        // Center initial view
+        // Do not reset offset on resize to keep user's view context
+        // especially on mobile where browser chrome toggles trigger resize.
+        this.draw();
+    }
+
+    centerView() {
         this.offsetX = this.canvas.width / 2;
         this.offsetY = this.canvas.height / 2;
         this.draw();
@@ -850,6 +874,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputMode = document.getElementById('display-mode');
     const inputRows = document.getElementById('param-rows');
     const groupRows = document.getElementById('group-rows');
+    const valRows = document.getElementById('val-rows');
+    const valA = document.getElementById('val-a');
+    const valMod = document.getElementById('val-mod');
+    const valT = document.getElementById('val-t');
 
     // Visibility Toggle Containers
     const toggleEdgesContainer = document.getElementById('toggle-edges-container');
@@ -876,12 +904,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateTiling() {
         const k = parseInt(inputK.value, 10);
         const m = parseInt(inputM.value, 10);
+
+        if (valMod) valMod.textContent = k;
+        if (valA) valA.textContent = m;
+
         const t = parseInt(inputT.value, 10);
+        if (valT) valT.textContent = t;
+
         const isOffset = inputOffset ? inputOffset.checked : false;
 
         // Get Mode and Parameters
         const mode = inputMode ? inputMode.value : 'prototile';
         const rows = inputRows ? parseInt(inputRows.value, 10) : 5;
+        if (valRows) valRows.textContent = rows;
 
         // Toggle depth input (rows) visibility
         if (groupRows) {

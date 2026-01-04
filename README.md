@@ -20,6 +20,10 @@ I built this tool using [Antigravity](https://antigravity.google/) and [Notebook
   - Toggle display of Edge numbers, Tile numbers, and Wedge numbers.
   - Wedge highlight on hover and Depth (Row) highlight.
   - Support for Offset Mode ($n = 2(tk - m)$).
+- **Mobile Friendly**:
+  - Responsive design that automatically adjusts layout for mobile devices.
+  - Collapsible control panel with a toggle button.
+  - Touch-friendly range sliders for parameter adjustment.
 
 ## Usage
 

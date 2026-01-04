@@ -13,6 +13,18 @@
 
 <body>
     <div id="app">
+        <!-- Toggle Button (Visible when panel is hidden) -->
+        <button id="btn-open-panel" aria-label="Open Settings">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <path d="M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+        </button>
+
         <div class="github-ribbon">
             <a href="https://github.com/buchio/modulo_krinkle_tiling_editor" target="_blank" rel="noopener noreferrer">
                 <svg viewBox="0 0 16 16" width="14" height="14"
@@ -27,9 +39,19 @@
 
         <aside class="control-panel">
             <header>
-                <h3>Modulo Krinkle Tiling Editor</h3>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <h3>Modulo Krinkle Tiling Editor</h3>
+                    <button id="btn-close-panel" aria-label="Close Settings">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
                 <p>Inspired with <a href="https://mk.tiling.jp/playground/" target="_blank"
-                        rel="noopener noreferrer">mk.tiling.jp/playground</a></p>
+                        rel="noopener noreferrer">mk.tiling.jp/playground</a> | <a
+                        href="https://github.com/buchio/modulo_krinkle_tiling_editor" target="_blank"
+                        rel="noopener noreferrer">GitHub</a></p>
             </header>
 
             <div class="controls">
@@ -63,23 +85,23 @@
                 </div>
 
                 <div class="control-group" id="group-rows" style="display: none;">
-                    <label for="param-rows">Rows (Depth)</label>
-                    <input type="number" id="param-rows" value="5" min="1" step="1">
+                    <label for="param-rows">Rows (Depth): <span id="val-rows">5</span></label>
+                    <input type="range" id="param-rows" value="5" min="1" max="20" step="1">
                 </div>
 
                 <div class="control-group">
-                    <label for="param-a">m (Step)</label>
-                    <input type="number" id="param-a" value="3" step="1">
+                    <label for="param-a">m (Step): <span id="val-a">3</span></label>
+                    <input type="range" id="param-a" value="3" min="1" max="50" step="1">
                 </div>
 
                 <div class="control-group">
-                    <label for="param-mod">k (Modulus)</label>
-                    <input type="number" id="param-mod" value="7" min="3" step="1">
+                    <label for="param-mod">k (Modulus): <span id="val-mod">7</span></label>
+                    <input type="range" id="param-mod" value="7" min="1" max="50" step="1">
                 </div>
 
                 <div class="control-group">
-                    <label for="param-t">t (Period Coeff)</label>
-                    <input type="number" id="param-t" value="2" step="1" min="1">
+                    <label for="param-t">t (Period Coeff): <span id="val-t">2</span></label>
+                    <input type="range" id="param-t" value="2" step="1" min="2" max="50">
                 </div>
 
                 <div class="control-group checkbox-group">
