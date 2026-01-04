@@ -15,3 +15,20 @@
     - **Toggleable Panel**: Added a hide/view toggle button for the control panel to maximize viewing area.
     - **Enhanced Controls**: Replaced numeric inputs with range sliders for intuitive parameter adjustment ($m, k, t, \text{Rows}$).
     - **Layout Adjustments**: Aligned labels and sliders horizontally for better usability.
+
+- **v1.2.0 - Advanced Mobile & Interactive Updates**
+    - **Fixed Sidebar Layout**: Refactored the control panel from a floating element to a fixed sidebar (Desktop: Left, Mobile: Top/Bottom Split).
+    - **Mobile Enhancements**:
+        - **Docked Panel**: Panel moves to the top on mobile for better ergonomics.
+        - **Safe Area Support**: Optimized for devices with notches (iPhone) using `viewport-fit=cover` and safe-area padding.
+        - **Fixed Overlays**: Buttons and GitHub ribbon are now `fixed` to ensure visibility regardless of scrolling.
+        - **Auto-Scaling**: Control panel automatically scales down to fit the screen height without scrolling.
+    - **Touch Interactions**:
+        - **One-Finger**: Inspect/Highlight elements without moving the canvas.
+        - **Two-Fingers**: Pan and Pinch-to-Zoom the canvas.
+    - **UI Polish**:
+        - **Close Button**: Moved to a full-width footer button for easier access.
+        - **Separation**: Added clear visual boundaries (borders/shadows) between the menu and canvas.
+        - **Contextual Icons**: Close icon direction adapts to the layout (Left/Up/Down).
+    - **License**:
+        - Added MIT License to the project.

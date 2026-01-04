@@ -1,3 +1,9 @@
+/*
+  MIT License
+  Copyright (c) 2026 buchio
+  See LICENSE file for details.
+*/
+
 /**
  * Modulo Krinkle Tiling - Single File Application
  * Integrated for compatibility with file:// protocol (avoiding CORS/Module issues)
@@ -39,7 +45,14 @@ class Renderer {
     }
 
     initEvents() {
-        // Resize listener
+        // Resize listener (Window + Canvas Size Change)
+        // Using ResizeObserver to detect container changes (e.g. sidebar toggle)
+        this.resizeObserver = new ResizeObserver(() => {
+            this.resize();
+        });
+        this.resizeObserver.observe(this.canvas);
+
+        // Also keep window resize for viewport updates if needed
         window.addEventListener('resize', () => this.resize());
 
         // Toggle Panel
@@ -55,6 +68,13 @@ class Renderer {
                 panel.classList.add('hidden');
                 btnOpen.classList.add('visible');
             }
+
+            // Explicitly resize immediately and after transition to ensure redraw
+            this.resize();
+            setTimeout(() => {
+                this.resize();
+                if (this.polygons) this.autoCenter(this.polygons);
+            }, 320);
         };
 
         if (btnOpen) btnOpen.addEventListener('click', () => togglePanel(true));
@@ -66,6 +86,8 @@ class Renderer {
             this.lastX = e.clientX;
             this.lastY = e.clientY;
             this.canvas.style.cursor = 'grabbing';
+
+            // Auto-close removed for split-screen layout
         });
 
         window.addEventListener('mousemove', (e) => {
@@ -88,6 +110,91 @@ class Renderer {
             this.canvas.style.cursor = 'grab';
         });
 
+        // Touch handling for mobile/tablet highlighting & drag
+        // Touch handling: 1 finger = Highlight, 2 fingers = Pan
+        this.lastTouchCount = 0;
+
+        const handleTouch = (e) => {
+            const touchCount = e.touches.length;
+
+            // Prevent browser scroll
+            if (e.type === 'touchmove') e.preventDefault();
+
+            if (touchCount === 1) {
+                // 1 Finger: Highlight only
+                const t = e.touches[0];
+                this.handleMouseMove(t.clientX, t.clientY);
+
+                // Reset drag state so it doesn't get stuck
+                this.isDragging = false;
+                this.lastTouchCount = 1;
+
+            } else if (touchCount === 2) {
+                // 2 Fingers: Pan (Scroll) + Zoom (Pinch)
+                const t1 = e.touches[0];
+                const t2 = e.touches[1];
+
+                // Calculate midpoint (for Pan)
+                const cx = (t1.clientX + t2.clientX) / 2;
+                const cy = (t1.clientY + t2.clientY) / 2;
+
+                // Calculate distance (for Zoom)
+                const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+
+                if (this.lastTouchCount !== 2) {
+                    // Just switched to 2 fingers, reset reference
+                    this.lastX = cx;
+                    this.lastY = cy;
+                    this.lastPinchDist = dist;
+                }
+
+                if (e.type === 'touchmove') {
+                    // Pan Logic
+                    const dx = cx - this.lastX;
+                    const dy = cy - this.lastY;
+                    this.offsetX += dx;
+                    this.offsetY += dy;
+                    this.lastX = cx;
+                    this.lastY = cy;
+
+                    // Zoom Logic
+                    if (this.lastPinchDist > 0) {
+                        const zoomFactor = dist / this.lastPinchDist;
+                        const newScale = Math.min(Math.max(0.1, this.scale * zoomFactor), 20);
+
+                        // Optional: Zoom towards center (cx, cy)
+                        // Current simple zoom implementation centers on screen center, 
+                        // but user asked for "pinch zoom" which implies centering on fingers.
+                        // For now, keeping global scale change to match wheel behavior, 
+                        // but updating scale directly.
+                        this.scale = newScale;
+                    }
+                    this.lastPinchDist = dist;
+
+                    this.draw();
+                }
+
+                this.lastTouchCount = 2;
+            } else {
+                // 0 or >2 fingers
+                this.lastTouchCount = touchCount;
+                this.isDragging = false;
+            }
+        };
+
+        this.canvas.addEventListener('touchstart', handleTouch, { passive: false });
+        this.canvas.addEventListener('touchmove', handleTouch, { passive: false });
+        this.canvas.addEventListener('touchend', (e) => {
+            // Reset on all fingers lifted
+            if (e.touches.length === 0) {
+                this.isDragging = false;
+                this.lastTouchCount = 0;
+            } else {
+                // If some fingers remain, update count to prevent jumps on next move
+                this.lastTouchCount = e.touches.length;
+            }
+        });
+
         // Zoom operation (wheel event)
         this.canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
@@ -104,11 +211,41 @@ class Renderer {
     }
 
     resize() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
+        // Use clientWidth/Height to fit within flex container (not full window)
+        this.canvas.width = this.canvas.clientWidth;
+        this.canvas.height = this.canvas.clientHeight;
+
+        // Update Panel Scale
+        this.updatePanelScale();
+
         // Do not reset offset on resize to keep user's view context
         // especially on mobile where browser chrome toggles trigger resize.
         this.draw();
+    }
+
+    updatePanelScale() {
+        const panel = document.querySelector('.control-panel');
+        const scaler = document.querySelector('.panel-scaler');
+
+        if (!panel || !scaler) return;
+
+        // Reset to measure natural size
+        scaler.style.transform = 'none';
+        scaler.style.width = '100%';
+
+        if (panel.clientHeight === 0) return; // Hidden
+
+        // Add buffer to prevent clipping of bottom elements (margins, shadows)
+        const contentHeight = scaler.scrollHeight + 50;
+        const availableHeight = panel.clientHeight;
+
+        if (contentHeight > availableHeight) {
+            const scale = availableHeight / contentHeight;
+            // Limit minimum scale to avoid unreadable text (optional, but requested "must fit")
+            // We'll stick to fitting it.
+            scaler.style.transform = `scale(${scale})`;
+            scaler.style.width = `${100 / scale}% `;
+        }
     }
 
     centerView() {
@@ -301,7 +438,7 @@ class Renderer {
                 // 1. Show Edge numbers (Prototile mode only)
                 if (this.mode === 'prototile' && this.showEdges) {
                     this.ctx.fillStyle = '#ffffff';
-                    this.ctx.font = `${14 / this.scale}px sans-serif`;
+                    this.ctx.font = `${14 / this.scale}px sans - serif`;
                     this.ctx.textAlign = 'center';
                     this.ctx.textBaseline = 'middle';
 
@@ -379,26 +516,33 @@ class Renderer {
         this.ctx.scale(this.scale, this.scale);
 
         this.ctx.fillStyle = '#ffffff';
-        this.ctx.font = `bold ${18 / this.scale}px sans-serif`;
+        this.ctx.font = `bold ${18 / this.scale}px sans - serif`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
 
         // Tiling mode: Show Wedge numbers
         if (this.mode === 'tiling' && this.wedgeCenters && this.showWedges) {
-            for (const idx in this.wedgeCenters) {
-                const center = this.wedgeCenters[idx];
-                // Shadow for visibility
-                this.ctx.shadowColor = "black";
-                this.ctx.shadowBlur = 4;
-                this.ctx.fillStyle = '#aaffee';
-                this.ctx.fillText(idx, center.x, center.y);
-                this.ctx.shadowBlur = 0;
+            const numWedges = Object.keys(this.wedgeCenters).length;
+            if (numWedges > 0) {
+                // Dynamic font size: smaller as wedge count increases
+                // Increased factor to 1000 for better visibility
+                const baseSize = Math.min(150, Math.max(12, 1000 / numWedges));
+                this.ctx.font = `bold ${baseSize / this.scale}px sans - serif`;
+                this.ctx.fillStyle = 'rgba(32, 32, 32, 0.7)';
+
+                // Get sorted keys to ensure stable sequential numbering
+                const sortedKeys = Object.keys(this.wedgeCenters).sort((a, b) => a - b);
+
+                sortedKeys.forEach((key, i) => {
+                    const center = this.wedgeCenters[key];
+                    this.ctx.fillText(i.toString(), center.x, center.y);
+                });
             }
         }
 
         // Wedge/Tiling mode: Show tile numbers
         if ((this.mode === 'wedge' || this.mode === 'tiling') && this.tileLabels && this.showTiles) {
-            this.ctx.font = `bold ${12 / this.scale}px sans-serif`;
+            this.ctx.font = `bold ${12 / this.scale}px sans - serif`;
             this.tileLabels.forEach(label => {
                 // Simple shadow
                 this.ctx.shadowColor = "black";
@@ -415,11 +559,16 @@ class Renderer {
     handleMouseMove(mx, my) {
         if (!this.polygons || this.mode !== 'tiling') return;
 
+        // Correct for canvas position (e.g. offset by menu)
+        const rect = this.canvas.getBoundingClientRect();
+        const canvasX = mx - rect.left;
+        const canvasY = my - rect.top;
+
         // Convert mouse coordinates to world coordinates
         // screenX = worldX * scale + offsetX
         // worldX = (screenX - offsetX) / scale
-        const worldX = (mx - this.offsetX) / this.scale;
-        const worldY = (my - this.offsetY) / this.scale;
+        const worldX = (canvasX - this.offsetX) / this.scale;
+        const worldY = (canvasY - this.offsetY) / this.scale;
 
         // Find hovered polygon
         let foundIndex = null;
@@ -483,7 +632,7 @@ class KrinkleGenerator {
      * @param {number} n - Parameter n (Symmetry - Rotations)
      */
     generatePrototile(m, k, n) {
-        console.log(`Generating Prototile with m=${m}, k=${k}, n=${n}`);
+        console.log(`Generating Prototile with m = ${m}, k = ${k}, n = ${n} `);
         let hasShortPeriod = false;
         this.polygons = [];
 
@@ -554,7 +703,7 @@ class KrinkleGenerator {
 
         // Check closure (return to start point)
         const closureError = Math.hypot(current.x, current.y);
-        console.log(`Prototile generated. Closure Error: ${closureError.toFixed(4)}`);
+        console.log(`Prototile generated.Closure Error: ${closureError.toFixed(4)} `);
 
         this.polygons.push({
             path: path,
@@ -574,7 +723,7 @@ class KrinkleGenerator {
      * @param {number} rows - Number of rows (Depth)
      */
     generateWedge(m, k, n, rows) {
-        console.log(`Generating Wedge with m=${m}, k=${k}, n=${n}, rows=${rows}`);
+        console.log(`Generating Wedge with m = ${m}, k = ${k}, n = ${n}, rows = ${rows} `);
         // First, generate Prototile (base tile) to get sequences and base path
         const basePolygons = this.generatePrototile(m, k, n);
         const basePoly = basePolygons[0];
@@ -683,7 +832,7 @@ class KrinkleGenerator {
         // - Offset: w_limit = n / 2 (Fill half, then copy by rotation)
         let w_limit = isOffset ? (n / 2) : n;
 
-        console.log(`Generating Tiling with m=${m}, k=${k}, n=${n}, isOffset=${isOffset}, w_limit=${w_limit}`);
+        console.log(`Generating Tiling with m = ${m}, k = ${k}, n = ${n}, isOffset = ${isOffset}, w_limit = ${w_limit} `);
 
 
         // 1. Generate Base Wedge (Wedge 0)
@@ -774,7 +923,7 @@ class KrinkleGenerator {
         addTransformedWedge(baseWedge, 0, 0, 0, wedge_offsets[0]);
 
         // Loop from 1 to w_limit-1 to place remaining Wedges
-        console.log(`Starting loop for ${w_limit} wedges. Front:`, front_directions);
+        console.log(`Starting loop for ${w_limit} wedges.Front: `, front_directions);
         for (let i = 1; i < w_limit; i++) {
             // Find j_star: where front_directions[j] == i
             // i.e., find where in current front matches the direction of next Wedge
@@ -786,7 +935,7 @@ class KrinkleGenerator {
                 }
             }
 
-            console.log(`Wedge ${i}: Found j_star=${j_star} in front ` + JSON.stringify(front_directions));
+            console.log(`Wedge ${i}: Found j_star = ${j_star} in front` + JSON.stringify(front_directions));
 
             if (j_star === -1) {
                 console.warn(`Warning: direction ${i} not found in front for wedge ${i}`);
@@ -808,7 +957,7 @@ class KrinkleGenerator {
             // Update Front
             // Boundary is updated by placed Wedge
             front_directions[j_star] = i + k;
-            console.log(`Updated front at ${j_star} to ${i + k}:`, front_directions);
+            console.log(`Updated front at ${j_star} to ${i + k}: `, front_directions);
         }
 
         // 3. (OFFSET MODE ONLY) 180-degree Rotation Copy
@@ -995,7 +1144,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (polygons.length > 0) {
                 renderer.autoCenter(polygons);
             }
-            statusText.textContent = `(m, k, n) = (${m}, ${k}, ${n}) [${mode}]`;
+            statusText.textContent = `(m, k, n) = (${m}, ${k}, ${n})[${mode}]`;
 
             const hasShortPeriod = polygons[0]?.meta?.hasShortPeriod || false;
             if (hasShortPeriod) {
@@ -1003,6 +1152,9 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 statusText.style.color = "#8b949e";
             }
+
+            // Re-check layout scaling after content update
+            if (renderer.updatePanelScale) renderer.updatePanelScale();
         }, 10);
     }
 

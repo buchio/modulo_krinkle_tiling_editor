@@ -1,3 +1,9 @@
+/*
+  MIT License
+  Copyright (c) 2026 buchio
+  See LICENSE file for details.
+*/
+
 :root {
     --bg-color: #0d1117;
     --text-color: #c9d1d9;
@@ -27,13 +33,17 @@ body {
 
 #app {
     position: relative;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
 }
 
 canvas {
     display: block;
-    width: 100%;
+    flex-grow: 1;
+    width: 0;
+    /* Important for flex shrinking */
     height: 100%;
     cursor: grab;
 }
@@ -43,18 +53,35 @@ canvas:active {
 }
 
 .control-panel {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 300px;
+    position: relative;
+    /* Reset from absolute */
+    width: 320px;
+    height: 100%;
+    flex-shrink: 0;
+
     background: var(--panel-bg);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--panel-border);
-    border-radius: 12px;
+    border-right: 1px solid var(--panel-border);
+    /* Remove rounded corners for sidebar */
+    border-radius: 0;
     padding: 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s ease;
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.3);
+
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Remove scroll, we scale to fit */
+    overflow: hidden;
+    z-index: 10;
+}
+
+.panel-scaler {
+    width: 100%;
+    transform-origin: top left;
+    padding-bottom: 24px;
+    /* Ensure space below footer */
 }
 
 header {
@@ -79,6 +106,8 @@ header p {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    padding-bottom: 40px;
+    /* Space for bottom content if any */
 }
 
 .control-group {
@@ -156,13 +185,14 @@ button:active {
 
 /* GitHub Ribbon */
 .github-ribbon {
-    position: absolute;
+    position: fixed;
+    /* Fixed to viewport */
     top: 0;
     right: 0;
     width: 100px;
     height: 100px;
     overflow: hidden;
-    z-index: 1000;
+    z-index: 2000;
     pointer-events: none;
 }
 
@@ -211,10 +241,12 @@ button:active {
 
 /* Toggle Buttons */
 #btn-open-panel {
-    position: absolute;
+    position: fixed;
+    /* Fixed to viewport */
     top: 20px;
     left: 20px;
-    z-index: 900;
+    z-index: 2000;
+    /* Ensure on top */
     width: 44px;
     height: 44px;
     border-radius: 50%;
@@ -262,43 +294,92 @@ button:active {
 
 /* Panel Transition & Hidden State */
 .control-panel.hidden {
-    transform: translateX(-120%);
-    opacity: 0;
-    pointer-events: none;
+    margin-left: -320px;
+    opacity: 1;
+    /* Keep visible for transition */
 }
 
 /* Responsive Design for Mobile */
 @media (max-width: 768px) {
+    #app {
+        flex-direction: column;
+        /* Stack Vertically */
+    }
+
     .control-panel {
+        /* Reset Desktop Styles */
+        position: relative;
+        left: auto;
         top: auto;
-        bottom: 0;
-        left: 0;
+
+        /* Mobile Fixed Layout (Top) */
+        order: 1;
+        /* Place at top */
         width: 100%;
-        max-height: 50vh;
-        overflow-y: auto;
-        border-radius: 12px 12px 0 0;
-        border-left: none;
+        height: calc(45vh + env(safe-area-inset-top));
+        /* Occupy top part of screen + safe area */
+        max-height: 100vh;
+        /* Safeguard: Never exceed screen */
+
         border-right: none;
-        border-bottom: none;
-        transform: translateY(0);
+        border-top: none;
+        border-bottom: 2px solid var(--accent-color);
+        /* distinctive separator */
+        border-radius: 0 0 12px 12px;
+
+        box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+        /* Strong downward shadow */
+        z-index: 20;
+        /* Ensure it stays on top */
+
         padding: 16px;
+        padding-top: calc(16px + env(safe-area-inset-top));
+        /* Clear the notch */
+        margin-left: 0;
+
+        /* Animate height for toggle */
+        transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+        overflow: hidden;
+        /* Ensure content hides when height is 0 */
     }
 
     .control-panel.hidden {
-        transform: translateY(120%);
+        margin-left: 0;
+        height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+        /* Hide border when closed */
+    }
+
+    .control-panel.hidden * {
+        /* Hint to browser to ignore contents when hidden for perf */
+        display: none;
+    }
+
+    /* Reset Canvas */
+    canvas {
+        order: 2;
+        /* Place at bottom */
+        width: 100%;
+        height: 0;
+        /* Flex shrink/grow */
     }
 
     #btn-open-panel {
-        top: auto;
-        bottom: 20px;
+        top: calc(20px + env(safe-area-inset-top));
+        /* Top left + safe area */
+        bottom: auto;
         left: 20px;
-        /* Increase z-index to be sure */
         z-index: 1100;
+
+        /* Adjust position slightly to not overlap with potentially small UI */
     }
 
     .github-ribbon {
         width: 70px;
         height: 70px;
+        top: env(safe-area-inset-top);
     }
 
     .github-ribbon a {
@@ -318,5 +399,11 @@ button:active {
 
     .control-group label {
         font-size: 0.9rem;
+    }
+
+    /* Rotate close icon to point up on mobile */
+    #btn-close-panel svg {
+        transform: rotate(90deg);
+        transition: transform 0.3s ease;
     }
 }

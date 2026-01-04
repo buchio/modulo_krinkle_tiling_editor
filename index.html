@@ -1,9 +1,14 @@
+<!--
+  MIT License
+  Copyright (c) 2026 buchio
+  See LICENSE file for details.
+-->
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Modulo Krinkle Tiling Editor</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,6 +18,95 @@
 
 <body>
     <div id="app">
+        <aside class="control-panel">
+            <div class="panel-scaler">
+                <header>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <h3>Modulo Krinkle Tiling Editor</h3>
+                    </div>
+                    <p>Inspired with <a href="https://mk.tiling.jp/playground/" target="_blank"
+                            rel="noopener noreferrer">mk.tiling.jp/playground</a> | <a
+                            href="https://github.com/buchio/modulo_krinkle_tiling_editor" target="_blank"
+                            rel="noopener noreferrer">GitHub</a></p>
+                </header>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="display-mode">Mode</label>
+                        <select id="display-mode">
+                            <option value="prototile">Prototile (Single)</option>
+                            <option value="wedge">Wedge (Layout)</option>
+                            <option value="tiling" selected>Tiling (Full)</option>
+                        </select>
+                    </div>
+
+                    <!-- Visibility Toggles -->
+                    <div class="control-group" id="group-toggles"
+                        style="margin-top: 10px; border-top: 1px solid #30363d; padding-top: 10px;">
+                        <div id="toggle-edges-container">
+                            <label>
+                                <input type="checkbox" id="show-edges" checked> Show Edge Index
+                            </label>
+                        </div>
+                        <div id="toggle-wedges-container" style="display:none;">
+                            <label>
+                                <input type="checkbox" id="show-wedges" checked> Show Wedge Index
+                            </label>
+                        </div>
+                        <div id="toggle-tiles-container" style="display:none;">
+                            <label>
+                                <input type="checkbox" id="show-tiles" checked> Show Tile Index
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="control-group" id="group-rows" style="display: none;">
+                        <label for="param-rows">Rows (Depth): <span id="val-rows">5</span></label>
+                        <input type="range" id="param-rows" value="5" min="1" max="20" step="1">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="param-a">m (Step): <span id="val-a">3</span></label>
+                        <input type="range" id="param-a" value="3" min="1" max="50" step="1">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="param-mod">k (Modulus): <span id="val-mod">7</span></label>
+                        <input type="range" id="param-mod" value="7" min="1" max="50" step="1">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="param-t">t (Period Coeff): <span id="val-t">2</span></label>
+                        <input type="range" id="param-t" value="2" step="1" min="2" max="50">
+                    </div>
+
+                    <div class="control-group checkbox-group">
+                        <label for="param-offset">
+                            <input type="checkbox" id="param-offset">
+                            Offset Mode (n = 2(tk-m))
+                        </label>
+                    </div>
+
+                </div>
+
+                <div class="status-bar">
+                    <span id="status-text">Ready</span>
+                </div>
+
+                <div class="panel-footer"
+                    style="margin-top: 16px; border-top: 1px solid var(--panel-border); padding-top: 12px; text-align: center;">
+                    <button id="btn-close-panel" aria-label="Close Settings"
+                        style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 18l-6-6 6-6"></path>
+                        </svg>
+                        <span style="font-size: 0.9rem;">Close Menu</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
         <!-- Toggle Button (Visible when panel is hidden) -->
         <button id="btn-open-panel" aria-label="Open Settings">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -36,87 +130,6 @@
             </a>
         </div>
         <canvas id="tiling-canvas"></canvas>
-
-        <aside class="control-panel">
-            <header>
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <h3>Modulo Krinkle Tiling Editor</h3>
-                    <button id="btn-close-panel" aria-label="Close Settings">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M18 6L6 18M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-                <p>Inspired with <a href="https://mk.tiling.jp/playground/" target="_blank"
-                        rel="noopener noreferrer">mk.tiling.jp/playground</a> | <a
-                        href="https://github.com/buchio/modulo_krinkle_tiling_editor" target="_blank"
-                        rel="noopener noreferrer">GitHub</a></p>
-            </header>
-
-            <div class="controls">
-                <div class="control-group">
-                    <label for="display-mode">Mode</label>
-                    <select id="display-mode">
-                        <option value="prototile">Prototile (Single)</option>
-                        <option value="wedge">Wedge (Layout)</option>
-                        <option value="tiling" selected>Tiling (Full)</option>
-                    </select>
-                </div>
-
-                <!-- Visibility Toggles -->
-                <div class="control-group" id="group-toggles"
-                    style="margin-top: 10px; border-top: 1px solid #30363d; padding-top: 10px;">
-                    <div id="toggle-edges-container">
-                        <label>
-                            <input type="checkbox" id="show-edges" checked> Show Edge #
-                        </label>
-                    </div>
-                    <div id="toggle-wedges-container" style="display:none;">
-                        <label>
-                            <input type="checkbox" id="show-wedges" checked> Show Wedge #
-                        </label>
-                    </div>
-                    <div id="toggle-tiles-container" style="display:none;">
-                        <label>
-                            <input type="checkbox" id="show-tiles" checked> Show Tile #
-                        </label>
-                    </div>
-                </div>
-
-                <div class="control-group" id="group-rows" style="display: none;">
-                    <label for="param-rows">Rows (Depth): <span id="val-rows">5</span></label>
-                    <input type="range" id="param-rows" value="5" min="1" max="20" step="1">
-                </div>
-
-                <div class="control-group">
-                    <label for="param-a">m (Step): <span id="val-a">3</span></label>
-                    <input type="range" id="param-a" value="3" min="1" max="50" step="1">
-                </div>
-
-                <div class="control-group">
-                    <label for="param-mod">k (Modulus): <span id="val-mod">7</span></label>
-                    <input type="range" id="param-mod" value="7" min="1" max="50" step="1">
-                </div>
-
-                <div class="control-group">
-                    <label for="param-t">t (Period Coeff): <span id="val-t">2</span></label>
-                    <input type="range" id="param-t" value="2" step="1" min="2" max="50">
-                </div>
-
-                <div class="control-group checkbox-group">
-                    <label for="param-offset">
-                        <input type="checkbox" id="param-offset">
-                        Offset Mode (n = 2(tk-m))
-                    </label>
-                </div>
-
-            </div>
-
-            <div class="status-bar">
-                <span id="status-text">Ready</span>
-            </div>
-        </aside>
     </div>
     <script src="app.js"></script>
 </body>

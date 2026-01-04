@@ -21,9 +21,11 @@ I built this tool using [Antigravity](https://antigravity.google/) and [Notebook
   - Wedge highlight on hover and Depth (Row) highlight.
   - Support for Offset Mode ($n = 2(tk - m)$).
 - **Mobile Friendly**:
-  - Responsive design that automatically adjusts layout for mobile devices.
+  - Responsive fixed design (Sidebar layout: Left on Desktop, Top/Bottom split on Mobile).
+  - Optimized for **Safe Area** (iPhone Notch/Island support).
+  - **Auto-Scaling** menu that always fits the screen.
   - Collapsible control panel with a toggle button.
-  - Touch-friendly range sliders for parameter adjustment.
+  - Touch-friendly range sliders and interaction logic.
 
 ## Usage
 
@@ -45,8 +47,9 @@ This application is designed to run in a local environment (no build required).
 
 ## Controls
 
-- **Pan View**: Drag inside the screen
-- **Zoom**: Mouse wheel (scroll)
+- **Pan View**: Drag (Mouse) or 2-Finger Drag (Touch)
+- **Zoom**: Mouse wheel or Pinch (2-Finger Touch)
+- **Highlight**: Hover (Mouse) or 1-Finger Touch
 - **Toggle Display**:
   - `Show Edge #`: Show edge indices (Prototile mode)
   - `Show Wedge #`: Show Wedge indices (Tiling mode)
@@ -73,3 +76,9 @@ This project is ready for **GitHub Pages**.
 5. Click **Save**.
 
 Your site will be live at `https://buchio.github.io/modulo_krinkle_tiling_editor/` shortly.
+
+## License
+
+MIT License
+
+Copyright (c) 2026 buchio
