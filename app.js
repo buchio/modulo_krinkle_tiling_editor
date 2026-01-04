@@ -436,9 +436,10 @@ class Renderer {
                 if (!poly.path || poly.path.length === 0) return;
 
                 // 1. Show Edge numbers (Prototile mode only)
+                // 1. Show Edge numbers (Prototile mode only)
                 if (this.mode === 'prototile' && this.showEdges) {
                     this.ctx.fillStyle = '#ffffff';
-                    this.ctx.font = `${14 / this.scale}px sans - serif`;
+                    this.ctx.font = `${14 / this.scale}px sans-serif`;
                     this.ctx.textAlign = 'center';
                     this.ctx.textBaseline = 'middle';
 
@@ -452,7 +453,6 @@ class Renderer {
                         this.ctx.fillText(i.toString(), midX, midY);
                     }
                 }
-
             });
         }
 
@@ -516,7 +516,7 @@ class Renderer {
         this.ctx.scale(this.scale, this.scale);
 
         this.ctx.fillStyle = '#ffffff';
-        this.ctx.font = `bold ${18 / this.scale}px sans - serif`;
+        this.ctx.font = `bold ${18 / this.scale}px sans-serif`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
 
@@ -527,7 +527,7 @@ class Renderer {
                 // Dynamic font size: smaller as wedge count increases
                 // Increased factor to 1000 for better visibility
                 const baseSize = Math.min(150, Math.max(12, 1000 / numWedges));
-                this.ctx.font = `bold ${baseSize / this.scale}px sans - serif`;
+                this.ctx.font = `bold ${baseSize / this.scale}px sans-serif`;
                 this.ctx.fillStyle = 'rgba(32, 32, 32, 0.7)';
 
                 // Get sorted keys to ensure stable sequential numbering
@@ -542,7 +542,7 @@ class Renderer {
 
         // Wedge/Tiling mode: Show tile numbers
         if ((this.mode === 'wedge' || this.mode === 'tiling') && this.tileLabels && this.showTiles) {
-            this.ctx.font = `bold ${12 / this.scale}px sans - serif`;
+            this.ctx.font = `bold ${12 / this.scale}px sans-serif`;
             this.tileLabels.forEach(label => {
                 // Simple shadow
                 this.ctx.shadowColor = "black";
