@@ -85,7 +85,10 @@ class Renderer {
         this.resizeObserver.observe(this.canvas);
 
         // Also keep window resize for viewport updates if needed
-        window.addEventListener('resize', () => this.resize());
+        window.addEventListener('resize', () => {
+            console.log('Window resized, redrawing...');
+            this.resize();
+        });
 
         // Toggle Panel
         const panel = document.querySelector('.control-panel');
@@ -1292,6 +1295,17 @@ document.addEventListener('DOMContentLoaded', () => {
             input.addEventListener('input', updateTiling);
             input.addEventListener('change', updateTiling);
         }
+    });
+
+    // Handle Window Resize (Regenerate Shapes as requested)
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        // Debounce to prevent excessive regeneration
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            console.log('Window resized, regenerating tiling...');
+            updateTiling();
+        }, 300);
     });
 
     // Initial Draw
