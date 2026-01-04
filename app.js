@@ -74,6 +74,7 @@ class Renderer {
         this.showEdges = true;   // Show edge numbers
         this.showWedges = true;  // Show Wedge numbers
         this.showTiles = true;   // Show tile numbers
+        this.showFill = false;    // Show fill color
     }
 
     initEvents() {
@@ -305,6 +306,7 @@ class Renderer {
         if (typeof options.showEdges !== 'undefined') this.showEdges = options.showEdges;
         if (typeof options.showWedges !== 'undefined') this.showWedges = options.showWedges;
         if (typeof options.showTiles !== 'undefined') this.showTiles = options.showTiles;
+        if (typeof options.showFill !== 'undefined') this.showFill = options.showFill;
         this.draw();
     }
 
@@ -463,7 +465,7 @@ class Renderer {
                     this.ctx.closePath();
                 }
 
-                this.ctx.fillStyle = poly.color;
+                this.ctx.fillStyle = this.showFill ? poly.color : '#0d1117';
                 this.ctx.fill();
 
                 if (poly.stroke) {
@@ -576,7 +578,7 @@ class Renderer {
             if (numWedges > 0) {
                 this.ctx.textAlign = 'center';
                 this.ctx.textBaseline = 'middle';
-                this.ctx.fillStyle = 'rgba(32, 32, 32, 0.7)';
+                this.ctx.fillStyle = '#a3b3cc';
 
                 // Get sorted keys to ensure stable sequential numbering
                 const sortedKeys = Object.keys(this.wedgeCenters).sort((a, b) => a - b);
@@ -1167,6 +1169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputShowEdges = document.getElementById('show-edges');
     const inputShowWedges = document.getElementById('show-wedges');
     const inputShowTiles = document.getElementById('show-tiles');
+    const inputShowFill = document.getElementById('show-fill');
 
     if (!inputK || !inputM || !inputT) {
         console.error("Critical Error: Missing UI inputs.", { inputK, inputM, inputT });
@@ -1214,7 +1217,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderer.setOptions({
             showEdges: inputShowEdges ? inputShowEdges.checked : true,
             showWedges: inputShowWedges ? inputShowWedges.checked : true,
-            showTiles: inputShowTiles ? inputShowTiles.checked : true
+            showTiles: inputShowTiles ? inputShowTiles.checked : true,
+            showFill: inputShowFill ? inputShowFill.checked : true
         });
 
         // Calculate Parameter n
@@ -1288,8 +1292,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 10);
     }
 
+    // Mode-specific preferences (Default: Wedge=ON, Tiling=OFF)
+    const modePreferences = {
+        prototile: { showTiles: false, showFill: false },
+        wedge: { showTiles: true, showFill: false },
+        tiling: { showTiles: false, showFill: false }
+    };
+    let currentMode = inputMode ? inputMode.value : 'tiling';
+
+    // Apply initial preference
+    if (modePreferences[currentMode]) {
+        if (inputShowTiles) inputShowTiles.checked = modePreferences[currentMode].showTiles;
+        if (inputShowFill) inputShowFill.checked = modePreferences[currentMode].showFill;
+    }
+
+    if (inputMode) {
+        inputMode.addEventListener('change', (e) => {
+            const newMode = e.target.value;
+            // Apply pref for new mode
+            if (modePreferences[newMode]) {
+                if (inputShowTiles) inputShowTiles.checked = modePreferences[newMode].showTiles;
+                if (inputShowFill) inputShowFill.checked = modePreferences[newMode].showFill;
+            }
+            currentMode = newMode;
+        });
+
+        if (inputShowTiles) {
+            inputShowTiles.addEventListener('change', (e) => {
+                if (modePreferences[currentMode]) {
+                    modePreferences[currentMode].showTiles = e.target.checked;
+                }
+            });
+        }
+
+        if (inputShowFill) {
+            inputShowFill.addEventListener('change', (e) => {
+                if (modePreferences[currentMode]) {
+                    modePreferences[currentMode].showFill = e.target.checked;
+                }
+            });
+        }
+    }
+
     // Add real-time update listeners for input changes
-    const inputs = [inputK, inputM, inputT, inputOffset, inputMode, inputRows, inputShowEdges, inputShowWedges, inputShowTiles];
+    const inputs = [inputK, inputM, inputT, inputOffset, inputMode, inputRows, inputShowEdges, inputShowWedges, inputShowTiles, inputShowFill];
     inputs.forEach(input => {
         if (input) {
             input.addEventListener('input', updateTiling);

@@ -17,8 +17,9 @@ I built this tool using [Antigravity](https://antigravity.google/) and [Notebook
   - **Tiling (Full)**: Displays the full tiling filling a circular area by rotating and placing Wedges.
 - **Interactive Control**: Supports panning via mouse drag and zooming via scroll wheel.
 - **Detailed Visualization**:
-  - Toggle display of Edge numbers, Tile numbers, and Wedge numbers.
+  - Toggle display of Edge numbers, Tile numbers, Wedge numbers, and **Tile Fill**.
   - Wedge highlight on hover and Depth (Row) highlight.
+  - **Dynamic Coloring**: Configurable color sequence (Forward/Reverse) and Start Color per Wedge.
   - Support for Offset Mode ($n = 2(tk - m)$).
 - **Mobile Friendly**:
   - Responsive fixed design (Sidebar layout: Left on Desktop, Top/Bottom split on Mobile).
@@ -51,19 +52,15 @@ This application is designed to run in a local environment (no build required).
 - **Zoom**: Mouse wheel or Pinch (2-Finger Touch)
 - **Highlight**: Hover (Mouse) or 1-Finger Touch
 - **Toggle Display**:
-  - `Show Edge #`: Show edge indices (Prototile mode)
   - `Show Wedge #`: Show Wedge indices (Tiling mode)
   - `Show Tile #`: Show individual tile indices
+  - `Fill Tiles`: Toggle tile coloring (Default OFF)
 
 ## File Structure
 
 - `index.html`: Entry point. Describes the UI structure.
-- `app.js`: All application logic (UI control, rendering, calculation).
+- `app.js`: All application logic. Contains `TILING_CONFIG` for advanced color configuration.
 - `style.css`: Stylesheet. Dark mode / Glassmorphism design.
-
-## TODO
-
-- [ ] Improve coloring logic
 
 ## Deployment (GitHub Pages)
 

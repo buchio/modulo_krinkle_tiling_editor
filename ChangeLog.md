@@ -31,4 +31,17 @@
         - **Separation**: Added clear visual boundaries (borders/shadows) between the menu and canvas.
         - **Contextual Icons**: Close icon direction adapts to the layout (Left/Up/Down).
     - **License**:
-        - Added MIT License to the project.
+- **v1.3.0 - Configuration & Visualization Updates**
+    - **Global Tiling Config**: Introduced `TILING_CONFIG` in `app.js` for centralized control of color count ($c$) and coloring logic.
+    - **Dynamic Coloring**:
+        - Colors are now generated dynamically based on the configuration.
+        - Support for custom color ordering (Forward/Reverse) and Start Color per Wedge.
+        - Default Logic: Even indices are Forward, Odd indices are Reverse.
+    - **Visualization Enhancements**:
+        - **Wedge Indices**: Improved font size scaling logic and updated color to bright blue-gray.
+        - **Fill Toggle**: Added "Fill Tiles" checkbox (Default: OFF) to toggle tile fill. Tiles are shown as background-colored polygons when OFF.
+        - **Mode Persistence**: Display settings (`Tile Index`, `Fill Tiles`) are now remembered independently for each mode (Wedge/Tiling).
+    - **Performance & Usability**:
+        - **Resize Handling**: Explicitly regenerates tiling on window resize to ensure correct rendering.
+        - **Menu**: Renamed "Close Menu" to "Hide Menu".
+
