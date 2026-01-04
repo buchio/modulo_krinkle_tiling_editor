@@ -8,6 +8,38 @@
  * Modulo Krinkle Tiling - Single File Application
  * Integrated for compatibility with file:// protocol (avoiding CORS/Module issues)
  */
+// ==========================================
+// Configuration
+// ==========================================
+const TILING_CONFIG = {
+    colorCount: 3, // Global number of colors
+    wedges: [{
+        params: {
+            c: 3,
+            m: 3,
+            k: 7,
+            n: 14
+        },
+        0: { reverse: false, startColor: 0 },
+        1: { reverse: true, startColor: 1 },
+        2: { reverse: false, startColor: 2 },
+        3: { reverse: true, startColor: 1 },
+        4: { reverse: false, startColor: 0 },
+        5: { reverse: true, startColor: 2 },
+        6: { reverse: false, startColor: 0 },
+        7: { reverse: true, startColor: 2 },
+        8: { reverse: false, startColor: 1 },
+        9: { reverse: true, startColor: 0 },
+        10: { reverse: false, startColor: 1 },
+        11: { reverse: true, startColor: 2 },
+        12: { reverse: false, startColor: 0 },
+        13: { reverse: true, startColor: 2 },
+        // Per-wedge configuration (index: { reverse: boolean, startColor: number })
+        // Defaults: reverse = false, startColor = wedgeIndex % colorCount
+        // Example:
+        // 1: { reverse: true, startColor: 0 }
+    }]
+};
 
 // ==========================================
 // Renderer Class
@@ -301,6 +333,7 @@ class Renderer {
 
         const sums = {};
         const counts = {};
+        const bounds = {};
 
         this.polygons.forEach(poly => {
             if (poly.meta && typeof poly.meta.wedgeIndex !== 'undefined') {
@@ -308,6 +341,10 @@ class Renderer {
                 if (!sums[idx]) {
                     sums[idx] = { x: 0, y: 0 };
                     counts[idx] = 0;
+                    bounds[idx] = {
+                        minX: Infinity, maxX: -Infinity,
+                        minY: Infinity, maxY: -Infinity
+                    };
                 }
 
                 // Calculate Centroid (using path vertices)
@@ -315,14 +352,24 @@ class Renderer {
                     sums[idx].x += p.x;
                     sums[idx].y += p.y;
                     counts[idx]++;
+
+                    if (p.x < bounds[idx].minX) bounds[idx].minX = p.x;
+                    if (p.x > bounds[idx].maxX) bounds[idx].maxX = p.x;
+                    if (p.y < bounds[idx].minY) bounds[idx].minY = p.y;
+                    if (p.y > bounds[idx].maxY) bounds[idx].maxY = p.y;
                 });
             }
         });
 
         for (const idx in sums) {
+            const width = bounds[idx].maxX - bounds[idx].minX;
+            const height = bounds[idx].maxY - bounds[idx].minY;
+
             this.wedgeCenters[idx] = {
                 x: sums[idx].x / counts[idx],
-                y: sums[idx].y / counts[idx]
+                y: sums[idx].y / counts[idx],
+                width: width,
+                height: height
             };
         }
     }
@@ -524,17 +571,31 @@ class Renderer {
         if (this.mode === 'tiling' && this.wedgeCenters && this.showWedges) {
             const numWedges = Object.keys(this.wedgeCenters).length;
             if (numWedges > 0) {
-                // Dynamic font size: smaller as wedge count increases
-                // Increased factor to 1000 for better visibility
-                const baseSize = Math.min(150, Math.max(12, 1000 / numWedges));
-                this.ctx.font = `bold ${baseSize / this.scale}px sans-serif`;
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
                 this.ctx.fillStyle = 'rgba(32, 32, 32, 0.7)';
 
                 // Get sorted keys to ensure stable sequential numbering
                 const sortedKeys = Object.keys(this.wedgeCenters).sort((a, b) => a - b);
 
+                const anglePerWedge = (2 * Math.PI) / numWedges;
+
                 sortedKeys.forEach((key, i) => {
                     const center = this.wedgeCenters[key];
+                    const dist = Math.hypot(center.x, center.y);
+
+                    // Estimate width at centroid
+                    const arcWidth = dist * anglePerWedge;
+
+                    // Estimate bounds size (diagonal)
+                    const boundDiag = Math.hypot(center.width, center.height);
+
+                    // Determine font size based on wedge width approximation
+                    let size = Math.min(boundDiag * 0.2, arcWidth * 0.5);
+                    size = Math.max(12, size); // Minimum size
+
+                    // Remove / this.scale so font scales with zoom (attached to world)
+                    this.ctx.font = `bold ${size}px sans-serif`;
                     this.ctx.fillText(i.toString(), center.x, center.y);
                 });
             }
@@ -599,6 +660,7 @@ class Renderer {
         if (needsRedraw) {
             this.draw();
         }
+
     }
 
     isPointInPoly(x, y, path) {
@@ -622,6 +684,65 @@ class Renderer {
 class KrinkleGenerator {
     constructor() {
         this.polygons = [];
+        this.palette = [];
+        this.currentParams = { m: 0, k: 0, n: 0 };
+    }
+
+    /**
+     * Generates a color palette based on global config.
+     */
+    generatePalette() {
+        const count = TILING_CONFIG.colorCount;
+        this.palette = [];
+        for (let i = 0; i < count; i++) {
+            const hue = Math.floor((360 / count) * i);
+            this.palette.push(`hsla(${hue}, 70%, 60%, 0.6)`);
+        }
+    }
+
+    /**
+     * Calculates the color index for a tile.
+     * @param {number} r - Row index (depth)
+     * @param {number} c - Column index
+     * @param {number} wedgeIndex - Index of the wedge
+     * @returns {number} - Index in the palette
+     */
+    getColorIndex(r, c, wedgeIndex) {
+        const config = TILING_CONFIG;
+        const count = config.colorCount;
+        const { m, k, n } = this.currentParams;
+        if (!m || !k || !n) return (wedgeIndex % count); // Fallback if params not set
+
+        // config.wedges is now an array of config objects
+        let wedgeConfig = {};
+        for (const item of config.wedges) {
+            if (item.params &&
+                item.params.c == config.colorCount &&
+                item.params.m == m &&
+                item.params.k == k &&
+                item.params.n == n
+            ) {
+                // Found matching configuration for current parameters
+                wedgeConfig = item[wedgeIndex] || {};
+                break;
+            }
+        }
+
+        const reverse = (typeof wedgeConfig.reverse !== 'undefined')
+            ? wedgeConfig.reverse
+            : (wedgeIndex % 2 !== 0);
+        const startColor = (typeof wedgeConfig.startColor !== 'undefined')
+            ? wedgeConfig.startColor
+            : (wedgeIndex % count);
+
+        let baseIndex;
+        if (reverse) {
+            baseIndex = (count - ((r + c) % count)) % count;
+        } else {
+            baseIndex = (r + c) % count;
+        }
+
+        return (baseIndex + startColor) % count;
     }
 
     /**
@@ -723,6 +844,7 @@ class KrinkleGenerator {
      * @param {number} rows - Number of rows (Depth)
      */
     generateWedge(m, k, n, rows) {
+        this.currentParams = { m, k, n };
         console.log(`Generating Wedge with m = ${m}, k = ${k}, n = ${n}, rows = ${rows} `);
         // First, generate Prototile (base tile) to get sequences and base path
         const basePolygons = this.generatePrototile(m, k, n);
@@ -777,12 +899,11 @@ class KrinkleGenerator {
         // Clear list for Wedge generation
         this.polygons = [];
 
-        // Color Scheme Array
-        const colors = [
-            'rgba(88, 166, 255, 0.6)',
-            'rgba(255, 100, 100, 0.6)',
-            'rgba(100, 200, 100, 0.6)'
-        ];
+        // Generate Palette
+        this.generatePalette();
+
+        // Color Scheme Array (Legacy fallback if palette fails, though generatePalette ensures it exists)
+        // const colors = this.palette; 
 
         let tileIndex = 0;
         // Loop through specified rows to place tiles
@@ -800,16 +921,17 @@ class KrinkleGenerator {
                 }));
 
                 // Coloring logic
-                const colorIdx = (r + c) % 3;
+                const colorIdx = this.getColorIndex(r, c, 0); // Base Wedge is index 0
 
                 this.polygons.push({
                     path: newPath,
-                    color: colors[colorIdx],
+                    color: this.palette[colorIdx],
                     stroke: '#888',
                     meta: {
-                        r, c,
-                        hasShortPeriod: basePoly.meta.hasShortPeriod,
-                        tileIndex: tileIndex++
+                        wedgeIndex: 0,
+                        tileIndex: tileIndex++,
+                        r: r,
+                        c: c
                     }
                 });
             }
@@ -827,6 +949,9 @@ class KrinkleGenerator {
      * @param {boolean} isOffset - Whether Offset Mode is enabled
      */
     generateTiling(m, k, n, rows, isOffset) {
+        // Store current params for color lookup
+        this.currentParams = { m, k, n };
+
         // Offset Mode Logic:
         // - No Offset: w_limit = n (Fill entire circle with Wedges)
         // - Offset: w_limit = n / 2 (Fill half, then copy by rotation)
@@ -886,11 +1011,11 @@ class KrinkleGenerator {
         // Helper: Clone and transform polygon (Rotate/Translate)
         const addTransformedWedge = (polys, offsetX, offsetY, rotationIndex, colorOffset) => {
             const rotAngle = rotationIndex * unit_angle;
-            const flowColors = [
-                'rgba(88, 166, 255, 0.6)',
-                'rgba(255, 100, 100, 0.6)',
-                'rgba(100, 200, 100, 0.6)'
-            ];
+
+            // Ensure palette is ready (should be done at start of generation)
+            if (this.palette.length !== TILING_CONFIG.colorCount) {
+                this.generatePalette();
+            }
 
             polys.forEach(p => {
                 // Rotate then translate
@@ -905,14 +1030,16 @@ class KrinkleGenerator {
                 }));
 
                 // Color calculation
-                // Add offset per Wedge to original color index (r+c)%3
+                // Use new configurable logic
                 const r = p.meta.r || 0;
                 const c = p.meta.c || 0;
-                const cIdx = (r + c + colorOffset) % 3;
+
+                // rotationIndex is the actual wedge index in circular layout
+                const cIdx = this.getColorIndex(r, c, rotationIndex);
 
                 this.polygons.push({
                     path: newPath,
-                    color: flowColors[cIdx],
+                    color: this.palette[cIdx],
                     stroke: '#888',
                     meta: { ...p.meta, wedgeIndex: rotationIndex }
                 });
