@@ -307,6 +307,12 @@ class Renderer {
         if (typeof options.showWedges !== 'undefined') this.showWedges = options.showWedges;
         if (typeof options.showTiles !== 'undefined') this.showTiles = options.showTiles;
         if (typeof options.showFill !== 'undefined') this.showFill = options.showFill;
+
+        if (typeof options.showAxis !== 'undefined') this.showAxis = options.showAxis;
+        if (typeof options.showLines !== 'undefined') this.showLines = options.showLines;
+        if (typeof options.highlightWedge !== 'undefined') this.highlightWedge = options.highlightWedge;
+        if (typeof options.highlightLayer !== 'undefined') this.highlightLayer = options.highlightLayer;
+
         this.draw();
     }
 
@@ -444,14 +450,16 @@ class Renderer {
         this.ctx.scale(this.scale, this.scale);
 
         // Draw axes (as guide)
-        this.ctx.strokeStyle = '#30363d';
-        this.ctx.lineWidth = 1 / this.scale;
-        this.ctx.beginPath();
-        this.ctx.moveTo(-10000, 0);
-        this.ctx.lineTo(10000, 0);
-        this.ctx.moveTo(0, -10000);
-        this.ctx.lineTo(0, 10000);
-        this.ctx.stroke();
+        if (this.showAxis !== false) {
+            this.ctx.strokeStyle = '#30363d';
+            this.ctx.lineWidth = 1 / this.scale;
+            this.ctx.beginPath();
+            this.ctx.moveTo(-10000, 0);
+            this.ctx.lineTo(10000, 0);
+            this.ctx.moveTo(0, -10000);
+            this.ctx.lineTo(0, 10000);
+            this.ctx.stroke();
+        }
 
         // Draw polygons
         if (this.polygons) {
@@ -468,7 +476,7 @@ class Renderer {
                 this.ctx.fillStyle = this.showFill ? poly.color : '#0d1117';
                 this.ctx.fill();
 
-                if (poly.stroke) {
+                if (this.showLines !== false && poly.stroke) {
                     this.ctx.strokeStyle = poly.stroke;
                     this.ctx.lineWidth = 2 / this.scale;
                     this.ctx.stroke();
@@ -512,7 +520,7 @@ class Renderer {
 
         // 2. Hover Overlay (Tiling mode - per Wedge)
         // Blue highlight (transparent)
-        if (this.mode === 'tiling' && this.hoveredWedgeIndex !== null && this.polygons) {
+        if (this.mode === 'tiling' && this.highlightWedge !== false && this.hoveredWedgeIndex !== null && this.polygons) {
             this.ctx.save();
             this.ctx.translate(this.offsetX, this.offsetY);
             this.ctx.scale(this.scale, this.scale);
@@ -538,7 +546,7 @@ class Renderer {
 
         // 3. Depth Overlay (Tiling mode - same depth)
         // Red highlight (transparent)
-        if (this.mode === 'tiling' && this.hoveredDepth !== null && this.polygons) {
+        if (this.mode === 'tiling' && this.highlightLayer !== false && this.hoveredDepth !== null && this.polygons) {
             this.ctx.save();
             this.ctx.translate(this.offsetX, this.offsetY);
             this.ctx.scale(this.scale, this.scale);
@@ -1192,6 +1200,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputShowTiles = document.getElementById('show-tiles');
     const inputFillMode = document.getElementById('input-fill-mode');
 
+    // New Visual Toggles
+    const checkShowAxis = document.getElementById('check-show-axis');
+    const checkShowLines = document.getElementById('check-show-lines');
+    const checkHighlightWedge = document.getElementById('check-highlight-wedge');
+    const checkHighlightLayer = document.getElementById('check-highlight-layer');
+
     if (!inputK || !inputM || !inputT) {
         console.error("Critical Error: Missing UI inputs.", { inputK, inputM, inputT });
         const statusText = document.getElementById('status-text');
@@ -1283,7 +1297,11 @@ document.addEventListener('DOMContentLoaded', () => {
             showEdges: inputShowEdges ? inputShowEdges.checked : true,
             showWedges: inputShowWedges ? inputShowWedges.checked : true,
             showTiles: inputShowTiles ? inputShowTiles.checked : true,
-            showFill: showFill
+            showFill: showFill,
+            showAxis: checkShowAxis ? checkShowAxis.checked : true,
+            showLines: checkShowLines ? checkShowLines.checked : true,
+            highlightWedge: checkHighlightWedge ? checkHighlightWedge.checked : true,
+            highlightLayer: checkHighlightLayer ? checkHighlightLayer.checked : true
         });
 
         // Calculate Parameter n
@@ -1400,7 +1418,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Add real-time update listeners for input changes
-    const inputs = [inputK, inputM, inputT, inputOffset, inputMode, inputRows, inputShowEdges, inputShowWedges, inputShowTiles, inputFillMode];
+    const inputs = [inputK, inputM, inputT, inputOffset, inputMode, inputRows,
+        inputShowEdges, inputShowWedges, inputShowTiles, inputFillMode,
+        checkShowAxis, checkShowLines, checkHighlightWedge, checkHighlightLayer];
     inputs.forEach(input => {
         if (input) {
             input.addEventListener('input', updateTiling);

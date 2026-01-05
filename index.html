@@ -43,31 +43,49 @@
                     <!-- Visibility Toggles -->
                     <div class="control-group" id="group-toggles"
                         style="margin-top: 10px; border-top: 1px solid #30363d; padding-top: 10px;">
-                        <div id="toggle-edges-container">
-                            <label>
-                                <input type="checkbox" id="show-edges" checked> Edge Index
-                            </label>
-                        </div>
-                        <div id="toggle-wedges-container" style="display:none;">
-                            <label>
-                                <input type="checkbox" id="show-wedges" checked> Wedge Index
-                            </label>
-                        </div>
-                        <div id="toggle-tiles-container" style="display:none;">
-                            <label>
-                                <input type="checkbox" id="show-tiles" checked> Tile Index
-                            </label>
-                        </div>
-                        <div id="toggle-fill-container" style="margin-top: 8px;">
-                            <label for="input-fill-mode" style="margin-right: 8px;">Fill:</label>
-                            <select id="input-fill-mode"
-                                style="padding: 4px; border-radius: 4px; background: var(--input-bg); color: var(--text-color); border: 1px solid var(--input-border);">
-                                <option value="none">None</option>
-                                <option value="3-gray">3 Colors (Gray)</option>
-                                <option value="3-color">3 Colors (Color)</option>
-                                <option value="10-gray">10 Colors (Gray)</option>
-                                <option value="10-color">10 Colors (Color)</option>
-                            </select>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <!-- Left Column: Indexes & Fill -->
+                            <div>
+                                <div id="toggle-edges-container">
+                                    <label><input type="checkbox" id="show-edges" checked> Edge Index</label>
+                                </div>
+                                <div id="toggle-wedges-container" style="display:none;">
+                                    <label><input type="checkbox" id="show-wedges" checked> Wedge Index</label>
+                                </div>
+                                <div id="toggle-tiles-container" style="display:none;">
+                                    <label><input type="checkbox" id="show-tiles" checked> Tile Index</label>
+                                </div>
+
+                                <div id="toggle-fill-container" style="margin-top: 8px;">
+                                    <label for="input-fill-mode"
+                                        style="display:block; font-size: 0.9em; margin-bottom: 2px;">Fill:</label>
+                                    <select id="input-fill-mode"
+                                        style="width: 100%; padding: 4px; border-radius: 4px; background: var(--input-bg); color: var(--text-color); border: 1px solid var(--input-border);">
+                                        <option value="none">None</option>
+                                        <option value="3-gray">3 Colors (Gray)</option>
+                                        <option value="3-color">3 Colors (Color)</option>
+                                        <option value="10-gray">10 Colors (Gray)</option>
+                                        <option value="10-color">10 Colors (Color)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Visual Options -->
+                            <div style="border-left: 1px solid #30363d; padding-left: 10px;">
+                                <label style="display: block; margin-bottom: 4px;">
+                                    <input type="checkbox" id="check-show-axis" checked> Show Axis
+                                </label>
+                                <label style="display: block; margin-bottom: 4px;">
+                                    <input type="checkbox" id="check-show-lines" checked> Borders
+                                </label>
+                                <label style="display: block; margin-bottom: 4px;">
+                                    <input type="checkbox" id="check-highlight-wedge" checked> Hover Wedge
+                                </label>
+                                <label style="display: block;">
+                                    <input type="checkbox" id="check-highlight-layer" checked> Hover Layer
+                                </label>
+                            </div>
                         </div>
                     </div>
 
