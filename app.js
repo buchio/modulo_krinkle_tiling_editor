@@ -517,7 +517,7 @@ class Renderer {
             this.ctx.translate(this.offsetX, this.offsetY);
             this.ctx.scale(this.scale, this.scale);
 
-            this.ctx.fillStyle = 'rgba(0, 0, 192, 0.5)';
+            this.ctx.fillStyle = 'rgba(20, 140, 170, 0.4)';
 
             this.polygons.forEach(poly => {
                 if (poly.meta && poly.meta.wedgeIndex === this.hoveredWedgeIndex) {
@@ -543,7 +543,7 @@ class Renderer {
             this.ctx.translate(this.offsetX, this.offsetY);
             this.ctx.scale(this.scale, this.scale);
 
-            this.ctx.fillStyle = 'rgba(192, 0, 0, 0.5)';
+            this.ctx.fillStyle = 'rgba(170, 170, 10, 0.4)';
 
             this.polygons.forEach(poly => {
                 if (poly.meta && typeof poly.meta.r !== 'undefined' && poly.meta.r === this.hoveredDepth) {
@@ -690,18 +690,39 @@ class KrinkleGenerator {
     constructor() {
         this.polygons = [];
         this.palette = [];
+        this.paletteType = 'color'; // Default type
         this.currentParams = { m: 0, k: 0, n: 0 };
     }
 
     /**
      * Generates a color palette based on global config.
      */
-    generatePalette() {
-        const count = TILING_CONFIG.colorCount;
+    generatePalette(count, type) {
+        // Fallback to stored state if args missing
+        if (typeof count === 'undefined') {
+            count = TILING_CONFIG.colorCount;
+        }
+        if (typeof type === 'undefined') {
+            type = this.paletteType;
+        }
+
+        // Update stored state
+        this.paletteType = type;
         this.palette = [];
         for (let i = 0; i < count; i++) {
-            const hue = Math.floor((360 / count) * i);
-            this.palette.push(`hsla(${hue}, 70%, 60%, 0.6)`);
+            if (type === 'gray') {
+                // Distribute lightness from 25% to 80% to ensure visibility against dark background
+                const minL = 25;
+                const maxL = 80;
+                const range = maxL - minL;
+                const step = count > 1 ? range / (count - 1) : 0;
+                const l = minL + (step * i);
+                this.palette.push(`hsla(0, 0%, ${Math.floor(l)}%, 0.6)`);
+            } else {
+                // Color mode (Rainbow)
+                const hue = Math.floor((360 / count) * i);
+                this.palette.push(`hsla(${hue}, 70%, 60%, 0.6)`);
+            }
         }
     }
 
@@ -1169,7 +1190,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputShowEdges = document.getElementById('show-edges');
     const inputShowWedges = document.getElementById('show-wedges');
     const inputShowTiles = document.getElementById('show-tiles');
-    const inputShowFill = document.getElementById('show-fill');
+    const inputFillMode = document.getElementById('input-fill-mode');
 
     if (!inputK || !inputM || !inputT) {
         console.error("Critical Error: Missing UI inputs.", { inputK, inputM, inputT });
@@ -1183,9 +1204,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    function updateTiling() {
-        const k = parseInt(inputK.value, 10);
-        const m = parseInt(inputM.value, 10);
+    function gcd(a, b) {
+        return b === 0 ? a : gcd(b, a % b);
+    }
+
+    function updateTiling(e) {
+        let k = parseInt(inputK.value, 10);
+        let m = parseInt(inputM.value, 10);
+
+        // Enforce m < k (User Request)
+        if (e && e.target) {
+            if (e.target === inputM && m >= k) {
+                // If m is increased >= k, push k up
+                k = m + 1;
+                inputK.value = k;
+            } else if (e.target === inputK && k <= m) {
+                // If k is decreased <= m, clamp k to m + 1
+                k = m + 1;
+                inputK.value = k;
+            }
+        }
+
+        // Enforce gcd(m, k) = 1 (User Request)
+        // If not coprime, increase k until it is.
+        while (gcd(m, k) !== 1) {
+            k++;
+        }
+        // Update UI if k changed
+        if (parseInt(inputK.value, 10) !== k) {
+            inputK.value = k;
+        }
 
         if (valMod) valMod.textContent = k;
         if (valA) valA.textContent = m;
@@ -1213,12 +1261,29 @@ document.addEventListener('DOMContentLoaded', () => {
         if (toggleWedgesContainer) toggleWedgesContainer.style.display = (mode === 'tiling') ? 'block' : 'none';
         if (toggleTilesContainer) toggleTilesContainer.style.display = (mode === 'wedge' || mode === 'tiling') ? 'block' : 'none';
 
+        // Configure Fill Mode
+        const fillMode = inputFillMode ? inputFillMode.value : 'none';
+
+
+        let showFill = false;
+
+        if (fillMode !== 'none') {
+            showFill = true;
+            const parts = fillMode.split('-');
+            if (parts.length === 2) {
+                const count = parseInt(parts[0], 10);
+                const type = parts[1];
+                TILING_CONFIG.colorCount = count;
+                generator.generatePalette(count, type);
+            }
+        }
+
         // Update Renderer Settings
         renderer.setOptions({
             showEdges: inputShowEdges ? inputShowEdges.checked : true,
             showWedges: inputShowWedges ? inputShowWedges.checked : true,
             showTiles: inputShowTiles ? inputShowTiles.checked : true,
-            showFill: inputShowFill ? inputShowFill.checked : true
+            showFill: showFill
         });
 
         // Calculate Parameter n
@@ -1294,16 +1359,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Mode-specific preferences (Default: Wedge=ON, Tiling=OFF)
     const modePreferences = {
-        prototile: { showTiles: false, showFill: false },
-        wedge: { showTiles: true, showFill: false },
-        tiling: { showTiles: false, showFill: false }
+        prototile: { showTiles: false, fillMode: 'none' },
+        wedge: { showTiles: true, fillMode: 'none' },
+        tiling: { showTiles: false, fillMode: 'none' }
     };
     let currentMode = inputMode ? inputMode.value : 'tiling';
 
     // Apply initial preference
     if (modePreferences[currentMode]) {
         if (inputShowTiles) inputShowTiles.checked = modePreferences[currentMode].showTiles;
-        if (inputShowFill) inputShowFill.checked = modePreferences[currentMode].showFill;
+        if (inputFillMode) inputFillMode.value = modePreferences[currentMode].fillMode;
     }
 
     if (inputMode) {
@@ -1312,7 +1377,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Apply pref for new mode
             if (modePreferences[newMode]) {
                 if (inputShowTiles) inputShowTiles.checked = modePreferences[newMode].showTiles;
-                if (inputShowFill) inputShowFill.checked = modePreferences[newMode].showFill;
+                if (inputFillMode) inputFillMode.value = modePreferences[newMode].fillMode;
             }
             currentMode = newMode;
         });
@@ -1325,17 +1390,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        if (inputShowFill) {
-            inputShowFill.addEventListener('change', (e) => {
+        if (inputFillMode) {
+            inputFillMode.addEventListener('change', (e) => {
                 if (modePreferences[currentMode]) {
-                    modePreferences[currentMode].showFill = e.target.checked;
+                    modePreferences[currentMode].fillMode = e.target.value;
                 }
             });
         }
     }
 
     // Add real-time update listeners for input changes
-    const inputs = [inputK, inputM, inputT, inputOffset, inputMode, inputRows, inputShowEdges, inputShowWedges, inputShowTiles, inputShowFill];
+    const inputs = [inputK, inputM, inputT, inputOffset, inputMode, inputRows, inputShowEdges, inputShowWedges, inputShowTiles, inputFillMode];
     inputs.forEach(input => {
         if (input) {
             input.addEventListener('input', updateTiling);
@@ -1353,6 +1418,29 @@ document.addEventListener('DOMContentLoaded', () => {
             updateTiling();
         }, 300);
     });
+
+    // Adjust slider visual widths to be proportional to their max values (User Request)
+    function adjustSliderWidths() {
+        if (!inputK || !inputM) return;
+
+        const maxK = parseInt(inputK.getAttribute('max') || 50, 10);
+        const maxM = parseInt(inputM.getAttribute('max') || 50, 10);
+
+        // Find maximum scale
+        const globalMax = Math.max(maxK, maxM);
+        const labelOffset = '112px'; // 100px min-width + 12px gap
+
+        // Update K
+        const ratioK = maxK / globalMax;
+        inputK.style.flexGrow = '0'; // Stop auto-growing
+        inputK.style.width = `calc((100% - ${labelOffset}) * ${ratioK})`;
+
+        // Update M
+        const ratioM = maxM / globalMax;
+        inputM.style.flexGrow = '0';
+        inputM.style.width = `calc((100% - ${labelOffset}) * ${ratioM})`;
+    }
+    adjustSliderWidths();
 
     // Initial Draw
     updateTiling();

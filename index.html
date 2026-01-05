@@ -58,31 +58,37 @@
                                 <input type="checkbox" id="show-tiles" checked> Tile Index
                             </label>
                         </div>
-                        <div id="toggle-fill-container">
-                            <label>
-                                <input type="checkbox" id="show-fill"> Fill Tiles [Exp]
-                            </label>
+                        <div id="toggle-fill-container" style="margin-top: 8px;">
+                            <label for="input-fill-mode" style="margin-right: 8px;">Fill:</label>
+                            <select id="input-fill-mode"
+                                style="padding: 4px; border-radius: 4px; background: var(--input-bg); color: var(--text-color); border: 1px solid var(--input-border);">
+                                <option value="none">None</option>
+                                <option value="3-gray">3 Colors (Gray)</option>
+                                <option value="3-color">3 Colors (Color)</option>
+                                <option value="10-gray">10 Colors (Gray)</option>
+                                <option value="10-color">10 Colors (Color)</option>
+                            </select>
                         </div>
                     </div>
 
                     <div class="control-group" id="group-rows" style="display: none;">
                         <label for="param-rows">Rows (Depth): <span id="val-rows">5</span></label>
-                        <input type="range" id="param-rows" value="5" min="1" max="20" step="1">
+                        <input type="range" id="param-rows" value="5" min="1" max="10" step="1">
                     </div>
 
                     <div class="control-group">
                         <label for="param-a">m (Step): <span id="val-a">3</span></label>
-                        <input type="range" id="param-a" value="3" min="1" max="50" step="1">
+                        <input type="range" id="param-a" value="3" min="1" max="15" step="1">
                     </div>
 
                     <div class="control-group">
                         <label for="param-mod">k (Modulus): <span id="val-mod">7</span></label>
-                        <input type="range" id="param-mod" value="7" min="1" max="50" step="1">
+                        <input type="range" id="param-mod" value="7" min="1" max="20" step="1">
                     </div>
 
                     <div class="control-group">
                         <label for="param-t">t (Period Coeff): <span id="val-t">2</span></label>
-                        <input type="range" id="param-t" value="2" step="1" min="2" max="50">
+                        <input type="range" id="param-t" value="2" step="1" min="2" max="5">
                     </div>
 
                     <div class="control-group checkbox-group">
